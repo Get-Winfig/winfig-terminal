@@ -1,0 +1,25 @@
+// List of Base Settings for Windows Terminal
+
+{
+    "$help": "https://aka.ms/terminal-documentation",
+    "$schema": "https://aka.ms/terminal-profiles-schema",
+    "copyFormatting": "none",
+    "copyOnSelect": true,
+    "launchMode": "maximized",
+    "confirmCloseAllTabs": true,
+    "alwaysShowNotificationIcon": true,
+    "newTabMenu": [
+        {
+            "label": "Remaining Profiles",
+            "type": "remainingProfiles"
+        }
+    ],
+    "actiona": [],
+    "defaultProfile": "{574e775e-4f2a-5b96-ac1e-a2962a402336}",
+    "profiles": {
+    },
+    "schemes": [
+
+    ],
+    "themes": []
+}
