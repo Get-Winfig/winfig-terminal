@@ -577,6 +577,24 @@ Write-Host ""
 Prompt-UserContinue
 
 Winfig-Banner
+Write-SectionHeader -Title "Download Wallpaper for Terminal Background"
+Write-Host ""
+
+$wallpaperUrl = "https://raw.githubusercontent.com/Get-Winfig/winfig-wallpaper/refs/heads/main/images/003-3904x2240.png"
+$wallpaperPath = "C:\Windows\Web\Wallpaper\Terminal.png"
+try {
+    Invoke-WebRequest -Uri $wallpaperUrl -OutFile $wallpaperPath -ErrorAction Stop
+    Show-SuccessMessage "Downloaded wallpaper to $wallpaperPath."
+    Log-Message -Message "Downloaded wallpaper to $wallpaperPath." -Level "SUCCESS"
+} catch {
+    Show-ErrorMessage "Failed to download wallpaper: $($_.Exception.Message)"
+    Log-Message -Message "Failed to download wallpaper: $($_.Exception.Message)" -Level "ERROR"
+}
+
+Write-Host ""
+Prompt-UserContinue
+
+Winfig-Banner
 Write-SectionHeader -Title "Thank You For Using Winfig Terminal" -Description "https://github.com/Get-Winfig/"
 Show-WarningMessage -Message "Restart Windows to apply changes"
 Write-Host ""
