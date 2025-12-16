@@ -6,10 +6,10 @@
             "backgroundImageStretchMode": "uniformToFill",
             "backgroundImage": "C:\\Windows\\Web\\Wallpaper\\Terminal.png",
             "startingDirectory": "%USERPROFILE%",
-            "colorScheme": "User Defined",
+            "colorScheme": "Catppuccin Mocha",
             "font": {
-                "face": "Font-Facet",
-                "size": 0.00
+                "face": "Hack Nerd Font",
+                "size": 11.0
             }
         },
         "list": [
@@ -42,135 +42,135 @@
             },
             // ─────── OFFICIAL WSL DISTROS ───────
             {
-                "guid": "{8e0f5c3a-2b1e-4fd0-9e52-1c4e87b52b01}",
+                "guid": "{b453ae62-4e3d-5e05-bbd9-9a8c8b6d7b01}",
                 "name": "Ubuntu",
                 "commandline": "wsl -d Ubuntu",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Ubuntu.ico"
             },
             {
-                "guid": "{8e0f5c3a-2b1e-4fd0-9e52-1c4e87b52c02}",
+                "guid": "{b453ae62-4e3d-5e05-bbd9-9a8c8b6d7b02}",
                 "name": "Ubuntu 20.04 LTS",
                 "commandline": "wsl -d Ubuntu-20.04",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Ubuntu.ico"
             },
             {
-                "guid": "{8e0f5c3a-2b1e-4fd0-9e52-1c4e87b52c03}",
+                "guid": "{b453ae62-4e3d-5e05-bbd9-9a8c8b6d7b03}",
                 "name": "Ubuntu 22.04 LTS",
                 "commandline": "wsl -d Ubuntu-22.04",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Ubuntu.ico"
             },
             {
-                "guid": "{8e0f5c3a-2b1e-4fd0-9e52-1c4e87b52c04}",
+                "guid": "{b453ae62-4e3d-5e05-bbd9-9a8c8b6d7b04}",
                 "name": "Ubuntu 24.04 LTS",
                 "commandline": "wsl -d Ubuntu-24.04",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Ubuntu.ico"
             },
             {
-                "guid": "{c3c2eab4-ccf7-4a3b-94a3-b1c6dfc73a02}",
+                "guid": "{b453ae62-4e3d-5e05-bbd9-9a8c8b6d7b05}",
                 "name": "Debian GNU/Linux",
                 "commandline": "wsl -d Debian",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Debian.ico"
             },
             {
-                "guid": "{d9b6b80f-7f90-4e3f-b9a6-80f6a6f8cb03}",
+                "guid": "{b453ae62-4e3d-5e05-bbd9-9a8c8b6d7b06}",
                 "name": "Arch Linux",
                 "commandline": "wsl -d archlinux",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Arch.ico"
             },
             {
-                "guid": "{1c5d94e6-3cb1-4a01-b48a-1a43c2b67006}",
+                "guid": "{b453ae62-4e3d-5e05-bbd9-9a8c8b6d7b07}",
                 "name": "Fedora Linux 43",
                 "commandline": "wsl -d FedoraLinux-43",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Fedora.ico"
             },
             {
-                "guid": "{ad5c20e7-f1e3-41a3-bcf4-3b9f29a9a008}",
+                "guid": "{b453ae62-4e3d-5e05-bbd9-9a8c8b6d7b08}",
                 "name": "Kali Linux Rolling",
                 "commandline": "wsl -d kali-linux",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Kali.ico"
             },
             {
-                "guid": "{2c90df72-f57b-4e25-aac7-083f478f1011}",
+                "guid": "{b453ae62-4e3d-5e05-bbd9-9a8c8b6d7b09}",
                 "name": "openSUSE Tumbleweed",
                 "commandline": "wsl -d openSUSE-Tumbleweed",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Opensuse.ico"
             },
             {
-                "guid": "{2c90df72-f57b-4e25-aac7-083f478f1012}",
+                "guid": "{b453ae62-4e3d-5e05-bbd9-9a8c8b6d7b10}",
                 "name": "openSUSE Leap 15.6",
                 "commandline": "wsl -d openSUSE-Leap-15.6",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Opensuse.ico"
             },
             // ─────── ENTERPRISE / SERVER ───────
             {
-                "guid": "{71dfbdcc-07ab-49b4-bd0b-ef2a21b41001}",
+                "guid": "{c5647b92-5d2f-4e7a-8b9c-3a1b2c4d5e11}",
                 "name": "SUSE Linux Enterprise 15 SP7",
                 "commandline": "wsl -d SUSE-Linux-Enterprise-15-SP7",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Opensuse.ico"
             },
             {
-                "guid": "{71dfbdcc-07ab-49b4-bd0b-ef2a21b41002}",
+                "guid": "{c5647b92-5d2f-4e7a-8b9c-3a1b2c4d5e12}",
                 "name": "SUSE Linux Enterprise 16.0",
                 "commandline": "wsl -d SUSE-Linux-Enterprise-16.0",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Opensuse.ico"
             },
             {
-                "guid": "{c5cb981a-0db3-45c7-8a8d-14a7f7f61001}",
+                "guid": "{c5647b92-5d2f-4e7a-8b9c-3a1b2c4d5e13}",
                 "name": "Oracle Linux 9.5",
                 "commandline": "wsl -d OracleLinux_9_5",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\linux.ico"
             },
             {
-                "guid": "{a12db3b7-4f89-4f5d-a3f6-f7bbaf041001}",
+                "guid": "{c5647b92-5d2f-4e7a-8b9c-3a1b2c4d5e14}",
                 "name": "AlmaLinux OS 9",
                 "commandline": "wsl -d AlmaLinux-9",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\linux.ico"
             },
             // ─────── DISTROBOX TEMPLATES ───────
             {
-                "guid": "{dbx00001-aaaa-bbbb-cccc-000000000001}",
+                "guid": "{d5a4b3c2-1e2f-3a4b-5c6d-7e8f9a0b1c15}",
                 "name": "Distrobox: Fedora",
                 "commandline": "distrobox-enter fedora",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Fedora.ico"
             },
             {
-                "guid": "{dbx00002-aaaa-bbbb-cccc-000000000002}",
+                "guid": "{d5a4b3c2-1e2f-3a4b-5c6d-7e8f9a0b1c16}",
                 "name": "Distrobox: Arch",
                 "commandline": "distrobox-enter arch",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Arch.ico"
             },
             {
-                "guid": "{dbx00003-aaaa-bbbb-cccc-000000000003}",
+                "guid": "{d5a4b3c2-1e2f-3a4b-5c6d-7e8f9a0b1c17}",
                 "name": "Distrobox: Alpine",
                 "commandline": "distrobox-enter alpine",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Alpine.ico"
             },
             {
-                "guid": "{dbx00004-aaaa-bbbb-cccc-000000000004}",
+                "guid": "{d5a4b3c2-1e2f-3a4b-5c6d-7e8f9a0b1c18}",
                 "name": "Distrobox: Gentoo",
                 "commandline": "distrobox-enter gentoo",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Gentoo.ico"
             },
             {
-                "guid": "{3f8a6c9e-2a4b-4c3e-9a21-9d3f2c8b1101}",
+                "guid": "{d5a4b3c2-1e2f-3a4b-5c6d-7e8f9a0b1c19}",
                 "name": "Distrobox: Linux Mint",
                 "commandline": "distrobox-enter mint",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Linux_mint.ico"
             },
             {
-                "guid": "{a7c4d0b2-5e6f-41a7-8c91-4f8d9b2e1102}",
+                "guid": "{d5a4b3c2-1e2f-3a4b-5c6d-7e8f9a0b1c20}",
                 "name": "Distrobox: Fedora Rawhide",
                 "commandline": "distrobox-enter fedora-rawhide",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Fedora.ico"
             },
             {
-                "guid": "{e1b7a9c3-6c2f-4c85-b0b4-1c6a92e41103}",
+                "guid": "{d5a4b3c2-1e2f-3a4b-5c6d-7e8f9a0b1c21}",
                 "name": "Distrobox: CentOS Stream",
                 "commandline": "distrobox-enter centos-stream",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Fedora.ico"
             },
             {
-                "guid": "{4d6f2c8a-9e31-4a1b-9b7d-6a5f2c1e1104}",
+                "guid": "{d5a4b3c2-1e2f-3a4b-5c6d-7e8f9a0b1c22}",
                 "name": "Distrobox: Manjaro",
                 "commandline": "distrobox-enter manjaro",
                 "icon": "%USERPROFILE%\\.Dotfiles\\winfig-terminal\\Assets\\Manjaro.ico"
