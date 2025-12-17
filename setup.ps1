@@ -63,10 +63,11 @@ $Global:WinfigPaths = @{
     Temp            = [Environment]::GetEnvironmentVariable("TEMP")
     AppDataRoaming  = [Environment]::GetFolderPath("ApplicationData")
     AppDataLocal    = [Environment]::GetFolderPath("LocalApplicationData")
-    DotFiles        = [System.IO.Path]::Combine($Global:WinfigPaths.UserProfile, ".Dotfiles")
     Downloads       = [System.IO.Path]::Combine([Environment]::GetFolderPath("UserProfile"), "Downloads")
     Logs            = [System.IO.Path]::Combine([Environment]::GetEnvironmentVariable("TEMP"), "Winfig-Logs")
 }
+$Global:WinfigPaths.DotFiles = [System.IO.Path]::Combine($Global:WinfigPaths.UserProfile, ".Dotfiles")
+$Global:WinfigPaths.Templates = [System.IO.Path]::Combine($Global:WinfigPaths.DotFiles, "winfig-terminal")
 
 # ====================================================================== #
 # Start Time, Resets, Counters
@@ -358,6 +359,128 @@ function Log-Message {
     }
 }
 
+# ---------------------------------------------------------------------------- #
+# Helper function to show category menu
+function Show-CategoryMenu {
+    param(
+        [Parameter(Mandatory=$true)]
+        [string]$Category,
+
+        [Parameter(Mandatory=$true)]
+        [array]$Profiles
+    )
+
+    $selected = @()
+
+    Write-Host ""
+    Write-Host "┤ $Category ├" -ForegroundColor $Script:WinfigColors.Accent
+    Write-Host ""
+
+    # Display profiles with numbers
+    for ($i = 0; $i -lt $Profiles.Count; $i++) {
+        Write-Host "  $($i + 1). $($Profiles[$i].name)" -ForegroundColor $Script:WinfigColors.Light
+    }
+
+    Write-Host ""
+    Show-InfoMessage "Category: $Category ($($Profiles.Count) profiles)"
+    Show-InfoMessage "Enter 'all', 'none', or comma-separated numbers (e.g., 1,3,5)"
+
+    $validInput = $false
+    while (-not $validInput) {
+        $selection = Prompt-UserInput -PromptMessage "[?] Select profiles from $($Category): " -PromptColor $Script:WinfigColors.Primary
+
+        if ($selection.Trim() -eq 'all') {
+            $selected = $Profiles
+            Show-SuccessMessage "Selected all $($Profiles.Count) $Category profiles"
+            $validInput = $true
+
+        } elseif ($selection.Trim() -eq 'none') {
+            Show-InfoMessage "Skipped $Category"
+            $validInput = $true
+
+        } elseif ($selection.Trim()) {
+            # Parse comma-separated numbers
+            $selectedIndices = $selection.Split(',') | ForEach-Object { $_.Trim() }
+            $hasErrors = $false
+
+            foreach ($indexStr in $selectedIndices) {
+                if ([int]::TryParse($indexStr, [ref]$null)) {
+                    $index = [int]$indexStr - 1
+                    if ($index -ge 0 -and $index -lt $Profiles.Count) {
+                        $selected += $Profiles[$index]
+                        Write-Host "    [+] Selected: $($Profiles[$index].name)" -ForegroundColor $Script:WinfigColors.Success
+                    } else {
+                        Show-WarningMessage "    Invalid index: $indexStr (must be between 1 and $($Profiles.Count))"
+                        $hasErrors = $true
+                    }
+                } else {
+                    Show-WarningMessage "    Invalid input: '$indexStr' (not a number)"
+                    $hasErrors = $true
+                }
+            }
+
+            if (-not $hasErrors) {
+                Show-SuccessMessage "Selected $($selected.Count) profiles from $Category"
+                $validInput = $true
+            } else {
+                Show-WarningMessage "Please try again with valid numbers"
+                $selected = @()  # Reset for retry
+            }
+
+        } else {
+            Show-WarningMessage "Please enter 'all', 'none', or numbers"
+        }
+    }
+
+    return $selected
+}
+
+# ---------------------------------------------------------------------------- #
+# Helper function to process profile ordering
+function Process-ProfileOrder {
+    param(
+        [Parameter(Mandatory=$true)]
+        [array]$Profiles,
+
+        [Parameter(Mandatory=$true)]
+        [string]$OrderInput
+    )
+
+    # Clean and split input
+    $orderNumbers = $OrderInput.Split(',') | ForEach-Object { $_.Trim() }
+
+    # Validate count matches
+    if ($orderNumbers.Count -ne $Profiles.Count) {
+        throw "You must specify exactly $($Profiles.Count) numbers (got $($orderNumbers.Count))"
+    }
+
+    # Validate all are numbers
+    foreach ($num in $orderNumbers) {
+        if (-not [int]::TryParse($num, [ref]$null)) {
+            throw "'$num' is not a valid number"
+        }
+        $intNum = [int]$num
+        if ($intNum -lt 1 -or $intNum -gt $Profiles.Count) {
+            throw "Number $intNum is out of range (1-$($Profiles.Count))"
+        }
+    }
+
+    # Check for duplicates
+    $uniqueCount = ($orderNumbers | Select-Object -Unique).Count
+    if ($uniqueCount -ne $Profiles.Count) {
+        throw "Duplicate numbers found. Each position must be unique"
+    }
+
+    # Reorder profiles
+    $reordered = @()
+    foreach ($position in $orderNumbers) {
+        $index = [int]$position - 1
+        $reordered += $Profiles[$index]
+    }
+
+    return $reordered
+}
+
 # ====================================================================== #
 #  Main Functions
 # ====================================================================== #
@@ -401,14 +524,14 @@ function Test-InternetConnection {
 }
 
 # ---------------------------------------------------------------------------- #
-# Function to check if PowerShell version is 5.1 or higher
+# Function to check if PowerShell version is 7 or higher
 function Test-PSVersion {
     $psVersion = $PSVersionTable.PSVersion
-    if ($psVersion.Major -ge 5) {
+    if ($psVersion.Major -ge 7) {
         Log-Message -Message "PowerShell version is sufficient: $($psVersion.ToString())." -Level "SUCCESS"
     } else {
-        Show-ErrorMessage "PowerShell version is insufficient: $($psVersion.ToString()). Version 5.1 or higher is required."
-        Log-Message -Message "PowerShell version is insufficient: $($psVersion.ToString()). Version 5.1 or higher is required." -Level "ERROR"
+        Show-ErrorMessage "PowerShell version is insufficient: $($psVersion.ToString()). Version 7 or higher is required."
+        Log-Message -Message "PowerShell version is insufficient: $($psVersion.ToString()). Version 7 or higher is required." -Level "ERROR"
         Log-Message "Forced exit." -EndRun
         $LogPathMessage = "Check the Log file for details: $($Global:WinfigLogFilePath)"
         Show-InfoMessage -Message $LogPathMessage
@@ -508,6 +631,318 @@ function Test-GitInstalled {
     }
 }
 
+# ---------------------------------------------------------------------------- #
+# Create Config File for Windows terminal.
+function Create-ConfigJsonFile {
+    $jsonFilePath = Join-Path -Path $Global:WinfigPaths.Templates -ChildPath "settings.json"
+    if (Test-Path -Path $jsonFilePath) {
+        Move-Item -Path $jsonFilePath -Destination "$jsonFilePath.bak" -Force
+        Log-Message -Message "Backed up existing JSON file at $jsonFilePath.bak." -Level "INFO"
+    }else {
+        New-Item -ItemType File -Path $jsonFilePath -Force | Out-Null
+        Log-Message -Message "Created new JSON file at $jsonFilePath." -Level "INFO"
+    }
+}
+
+# ---------------------------------------------------------------------------- #
+#  Read the content of "settings-base.json" and copy it to newly created "settings.json"
+function Copy-BaseSettings {
+    $baseJsonPath     = Join-Path $Global:WinfigPaths.Templates "settings-base.json"
+    $modifiedJsonPath = Join-Path $Global:WinfigPaths.Templates "settings.json"
+
+    if (-not (Test-Path $baseJsonPath)) {
+        Show-ErrorMessage "Base settings file not found at $baseJsonPath."
+        Log-Message -Message "Base settings file not found at $baseJsonPath." -Level "ERROR"
+        exit 1
+    }
+
+    Copy-Item -Path $baseJsonPath -Destination $modifiedJsonPath -Force
+}
+
+# ---------------------------------------------------------------------------- #
+# Read the content of "actions.json" file and then copy them into its appropriate place in "settings.json"
+function Copy-ActionsSettings {
+    try {
+        $actionsPath = Join-Path $Global:WinfigPaths.Templates "actions.json"
+        $settingsPath = Join-Path $Global:WinfigPaths.Templates "settings.json"
+        $tempActionsPath = Join-Path $Global:WinfigPaths.Temp "actions-clean.json"
+
+        # Step 1: Remove comment lines and write to temp file
+        Get-Content $actionsPath | Where-Object { -not ($_ -match '^\s*//') } | Set-Content $tempActionsPath -Encoding UTF8
+
+        # Step 2: Read temp file, remove trailing commas, and parse JSON
+        $json = (Get-Content $tempActionsPath -Raw) -replace ',(\s*[\]\}])', '$1'
+        $actions = $json | ConvertFrom-Json | Select-Object -ExpandProperty actions
+
+        # Step 3: Read settings, update actions, and save
+        $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
+        $settings.actions = $actions
+        $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsPath -Encoding UTF8
+
+        # Cleanup temp file
+        Remove-Item $tempActionsPath -ErrorAction SilentlyContinue
+
+        Show-SuccessMessage "Copied $($actions.Count) actions to settings.json"
+        Log-Message -Message "Copied $($actions.Count) actions to settings.json" -Level "SUCCESS"
+
+    } catch {
+        Show-ErrorMessage "Failed to copy actions: $($_.Exception.Message)"
+        Log-Message -Message "Failed to copy actions: $($_.Exception.Message)" -Level "ERROR"
+        exit 1
+    }
+}
+
+# ---------------------------------------------------------------------------- #
+# Read the content of "schemes.json" file and then ask user what schemes they wanna add in config then copy only user required schemes in "settings.json" file in appropriate location
+function Copy-SchemesSettings {
+    try {
+        $schemesPath = Join-Path $Global:WinfigPaths.Templates "schemes.json"
+        $settingsPath = Join-Path $Global:WinfigPaths.Templates "settings.json"
+
+        # Read schemes from JSON
+        $schemesJson = Get-Content $schemesPath -Raw | ConvertFrom-Json
+        $allSchemes = $schemesJson.schemes
+
+        # Display available schemes
+        Write-SubsectionHeader -Title "Available Color Schemes"
+        Write-Host ""
+
+        # Create numbered list of schemes
+        $schemeList = @()
+        for ($i = 0; $i -lt $allSchemes.Count; $i++) {
+            $schemeName = $allSchemes[$i].name
+            $schemeList += @{Index = $i + 1; Name = $schemeName}
+            Write-Host "$($i + 1). $schemeName" -ForegroundColor $Script:WinfigColors.Info
+        }
+
+        Write-Host ""
+        Write-Host "You can select multiple schemes by entering numbers separated by commas (e.g., 1,3,5)" -ForegroundColor $Script:WinfigColors.Warning
+        Write-Host "Enter 'all' to select all schemes" -ForegroundColor $Script:WinfigColors.Warning
+        Write-Host "Enter 'none' to skip adding schemes" -ForegroundColor $Script:WinfigColors.Warning
+        Write-Host ""
+
+        # Prompt user for selection
+        $selection = Prompt-UserInput -PromptMessage "[?] Select schemes to add: " -PromptColor $Script:WinfigColors.Primary
+
+        # Process selection
+        $selectedSchemes = @()
+
+        if ($selection.Trim() -eq 'all') {
+            # Select all schemes
+            $selectedSchemes = $allSchemes
+            Show-InfoMessage "Selected all $($allSchemes.Count) schemes"
+        }
+        elseif ($selection.Trim() -eq 'none') {
+            # No schemes selected
+            Show-InfoMessage "No schemes selected"
+            $selectedSchemes = @()
+        }
+        else {
+            # Parse comma-separated numbers
+            $selectedIndices = $selection.Split(',') | ForEach-Object { $_.Trim() }
+
+            foreach ($indexStr in $selectedIndices) {
+                if ([int]::TryParse($indexStr, [ref]$null)) {
+                    $index = [int]$indexStr - 1
+                    if ($index -ge 0 -and $index -lt $allSchemes.Count) {
+                        $selectedSchemes += $allSchemes[$index]
+                        Write-Host "  [+] Selected: $($allSchemes[$index].name)" -ForegroundColor $Script:WinfigColors.Success
+                    } else {
+                        Write-Host "  [!] Invalid index: $indexStr (out of range)" -ForegroundColor $Script:WinfigColors.Error
+                    }
+                } else {
+                    Write-Host "  [!] Invalid input: $indexStr (not a number)" -ForegroundColor $Script:WinfigColors.Error
+                }
+            }
+        }
+
+        if ($selectedSchemes.Count -gt 0) {
+            # Read current settings
+            $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
+
+            # Add or update schemes in settings
+            $settings.schemes = $selectedSchemes
+
+            # Save updated settings
+            $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsPath -Encoding UTF8
+
+            Show-SuccessMessage "Added $($selectedSchemes.Count) color schemes to settings.json"
+            Log-Message -Message "Added $($selectedSchemes.Count) color schemes to settings.json" -Level "SUCCESS"
+
+            # Show selected scheme names
+            Write-Host ""
+            Write-Host "Selected schemes:" -ForegroundColor $Script:WinfigColors.Info
+            foreach ($scheme in $selectedSchemes) {
+                Write-Host "  • $($scheme.name)" -ForegroundColor $Script:WinfigColors.Light
+            }
+        } else {
+            Show-InfoMessage "No schemes were added to settings.json"
+            Log-Message -Message "No schemes were added to settings.json" -Level "INFO"
+        }
+
+        Write-Host ""
+
+    } catch {
+        $errorMsg = "Failed to copy schemes: $($_.Exception.Message)"
+        Show-ErrorMessage $errorMsg
+        Log-Message -Message $errorMsg -Level "ERROR"
+    }
+}
+
+# ---------------------------------------------------------------------------- #
+#  Read the content of "profiles.json" file and then ask user what profile they wants and in what order they wants their profiles then configure them in "settings.json" file in appropriate location
+function Copy-ProfileSettings {
+    try {
+        $profilesPath = Join-Path $Global:WinfigPaths.Templates "profiles.json"
+        $settingsPath = Join-Path $Global:WinfigPaths.Templates "settings.json"
+
+        # Read profiles from JSON
+        $profilesJson = Get-Content $profilesPath -Raw | ConvertFrom-Json
+        $defaults = $profilesJson.profiles.defaults
+        $allProfiles = $profilesJson.profiles.list
+
+        # Display available profiles count
+        Show-InfoMessage "Found $($allProfiles.Count) available profiles"
+        Log-Message -Message "Found $($allProfiles.Count) available profiles" -Level "INFO"
+
+        # --------------------------------------------------------------------
+        # Selection Process
+        # --------------------------------------------------------------------
+        Write-SubsectionHeader -Title "PROFILE SELECTION PROCESS"
+
+        # Show selection instructions
+        Show-InfoMessage "You will now select which profiles to include in your terminal."
+        Show-InfoMessage "For each category, you can select 'all', 'none', or specific numbers."
+        Write-Host ""
+
+        # --------------------------------------------------------------------
+        # Create selection menus
+        # --------------------------------------------------------------------
+        $selectedProfiles = @()
+
+        # Menu 1: Basic Profiles (PowerShell, CMD, Git Bash)
+        $basicProfiles = $allProfiles | Where-Object {
+            $_.name -match "PowerShell|Command Prompt|Git Bash"
+        }
+        if ($basicProfiles.Count -gt 0) {
+            $basicSelected = Show-CategoryMenu -Category "Basic Profiles" -Profiles $basicProfiles
+            $selectedProfiles += $basicSelected
+        }
+
+        # Menu 2: WSL Profiles
+        $wslProfiles = $allProfiles | Where-Object {
+            $_.commandline -and $_.commandline -match '^wsl -d '
+        }
+        if ($wslProfiles.Count -gt 0) {
+            $wslSelected = Show-CategoryMenu -Category "WSL Distributions" -Profiles $wslProfiles
+            $selectedProfiles += $wslSelected
+        }
+
+        # Menu 3: Distrobox Profiles
+        $distroboxProfiles = $allProfiles | Where-Object {
+            $_.commandline -and $_.commandline -match '^distrobox-enter '
+        }
+        if ($distroboxProfiles.Count -gt 0) {
+            $distroboxSelected = Show-CategoryMenu -Category "Distrobox Templates" -Profiles $distroboxProfiles
+            $selectedProfiles += $distroboxSelected
+        }
+
+        # Menu 4: Other Profiles
+        $otherProfiles = $allProfiles | Where-Object {
+            $selectedProfiles -notcontains $_ -and
+            $basicProfiles -notcontains $_ -and
+            $wslProfiles -notcontains $_ -and
+            $distroboxProfiles -notcontains $_
+        }
+        if ($otherProfiles.Count -gt 0) {
+            $otherSelected = Show-CategoryMenu -Category "Other Profiles" -Profiles $otherProfiles
+            $selectedProfiles += $otherSelected
+        }
+
+        # Check if any profiles were selected
+        if ($selectedProfiles.Count -eq 0) {
+            Show-WarningMessage "No profiles were selected. Using default profiles."
+            Log-Message -Message "No profiles selected by user" -Level "WARN"
+            $selectedProfiles = @($allProfiles[0], $allProfiles[1], $allProfiles[3])  # PowerShell Core, Windows PowerShell, Command Prompt
+        }
+
+        # --------------------------------------------------------------------
+        # Ordering Process
+        # --------------------------------------------------------------------
+        Write-SubsectionHeader -Title "PROFILE ORDERING"
+
+        # Show current order
+        Show-InfoMessage "Current order of selected profiles:"
+        for ($i = 0; $i -lt $selectedProfiles.Count; $i++) {
+            Write-Host "  $($i + 1). $($selectedProfiles[$i].name)" -ForegroundColor $Script:WinfigColors.Light
+        }
+
+        # Ask if user wants to reorder
+        Write-Host ""
+        $reorderResponse = Prompt-UserInput -PromptMessage "[?] Would you like to reorder these profiles? (Y/N): " -PromptColor $Script:WinfigColors.Primary
+
+        if ($reorderResponse.Trim().ToUpper() -eq 'Y') {
+            Show-InfoMessage "Enter the new order using the numbers above, separated by commas."
+            Show-InfoMessage "Example: To swap first and second profiles, enter: 2,1,3,4,..."
+
+            $orderInput = Prompt-UserInput -PromptMessage "[?] Enter new order: " -PromptColor $Script:WinfigColors.Primary
+
+            if ($orderInput.Trim()) {
+                try {
+                    $newOrder = Process-ProfileOrder -Profiles $selectedProfiles -OrderInput $orderInput
+                    if ($newOrder) {
+                        $selectedProfiles = $newOrder
+                        Show-SuccessMessage "Profiles reordered successfully"
+                        Log-Message -Message "User reordered $($selectedProfiles.Count) profiles" -Level "SUCCESS"
+                    }
+                } catch {
+                    Show-WarningMessage "Could not reorder profiles: $($_.Exception.Message)"
+                    Show-InfoMessage "Keeping original order."
+                    Log-Message -Message "Failed to reorder profiles: $($_.Exception.Message)" -Level "WARN"
+                }
+            }
+        }
+
+        # --------------------------------------------------------------------
+        # Final Confirmation
+        # --------------------------------------------------------------------
+        Write-SubsectionHeader -Title "FINAL CONFIGURATION"
+
+        Show-InfoMessage "Final profile configuration:"
+        for ($i = 0; $i -lt $selectedProfiles.Count; $i++) {
+            Write-Host "  $($i + 1). $($selectedProfiles[$i].name)" -ForegroundColor $Script:WinfigColors.Success
+        }
+        Write-Host ""
+
+        # Ask for final confirmation
+        if (Prompt-UserConfirmation) {
+            # Read current settings
+            $settings = Get-Content $settingsPath -Raw | ConvertFrom-Json
+
+            # Update profiles in settings
+            $settings.profiles = @{
+                defaults = $defaults
+                list = $selectedProfiles
+            }
+
+            # Save updated settings
+            $settings | ConvertTo-Json -Depth 10 | Set-Content $settingsPath -Encoding UTF8
+
+            Show-SuccessMessage "Successfully configured $($selectedProfiles.Count) profiles in settings.json"
+            Log-Message -Message "Configured $($selectedProfiles.Count) profiles in settings.json" -Level "SUCCESS"
+
+        } else {
+            Show-InfoMessage "Profile configuration cancelled by user"
+            Log-Message -Message "Profile configuration cancelled by user" -Level "INFO"
+        }
+
+    } catch {
+        $errorMsg = "Failed to configure profiles: $($_.Exception.Message)"
+        Show-ErrorMessage $errorMsg
+        Log-Message -Message $errorMsg -Level "ERROR"
+    }
+}
+
 # ====================================================================== #
 #  Main Script Execution
 # ====================================================================== #
@@ -590,11 +1025,54 @@ try {
     Show-ErrorMessage "Failed to download wallpaper: $($_.Exception.Message)"
     Log-Message -Message "Failed to download wallpaper: $($_.Exception.Message)" -Level "ERROR"
 }
-
 Write-Host ""
 Prompt-UserContinue
 
 Winfig-Banner
+Write-SectionHeader -Title "Creating Windows Terminal Configuration"
+Write-Host ""
+Create-ConfigJsonFile | Out-Null
+Show-SuccessMessage "Created Settings.json"
+Write-Host ""
+Copy-BaseSettings | Out-Null
+Show-SuccessMessage "Copied base settings to Settings.json."
+Write-Host ""
+Copy-ActionsSettings | Out-Null
+Show-SuccessMessage "Copied actions to Settings.json."
+Prompt-UserContinue
+
+Winfig-Banner
+Write-SectionHeader -Title "Configuring Color Schemes"
+Write-Host ""
+Copy-SchemesSettings | Out-Null
+Show-SuccessMessage "Schemes configuration completed."
+Prompt-UserContinue
+
+Winfig-Banner
+Write-SectionHeader -Title "Configuring Terminal Profiles"
+Write-Host ""
+Copy-ProfileSettings | Out-Null
+Show-SuccessMessage "Profiles configuration completed."
+Prompt-UserContinue
+
+Winfig-Banner
+Write-SectionHeader -Title "Symlink the config file"
+Write-Host ""
+try {
+    $source = Join-Path $Global:WinfigPaths.Templates "settings.json"
+    $target = Join-Path $Global:WinfigPaths.AppDataLocal "Packages\Microsoft.WindowsTerminal_8wekyb3d8bbwe\LocalState\settings.json"
+
+    if (Test-Path $target) { Remove-Item $target -Force }
+    New-Item -ItemType SymbolicLink -Path $target -Target $source -Force
+
+    Show-SuccessMessage "Symlink created: $target -> $source"
+    Log-Message -Message "Symlink created: $target -> $source" -Level "SUCCESS"
+
+} catch {
+    Show-ErrorMessage "Failed to create symlink: $($_.Exception.Message)"
+    Log-Message -Message "Failed to create symlink: $($_.Exception.Message)" -Level "ERROR"
+}
+Write-Host ""
 Write-SectionHeader -Title "Thank You For Using Winfig Terminal" -Description "https://github.com/Get-Winfig/"
 Show-WarningMessage -Message "Restart Windows to apply changes"
 Write-Host ""
